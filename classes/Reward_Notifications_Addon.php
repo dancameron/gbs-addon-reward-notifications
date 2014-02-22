@@ -11,7 +11,7 @@ class Reward_Notifications_Addon extends Group_Buying_Controller {
 		SEC_Reward_Notifications::init();
 	}
 
-	public static function gb_addon( $addons ) {
+	public static function sec_addon( $addons ) {
 		$addons['reward_notifications'] = array(
 			'label' => self::__( 'Reward Notifications' ),
 			'description' => self::__( 'Periodic emails sent to accounts with or without rewards.' ),

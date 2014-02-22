@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Group Buying Addon - Reward Notifications
+Plugin Name: SeC Addon - Reward Notifications
 Version: 1
 Plugin URI: http://groupbuyingsite.com/marketplace
 Description: Periodic emails sent to accounts with or without rewards.
@@ -14,12 +14,12 @@ define( 'SEC_REWARD_NOTIFICATIONS_PATH', WP_PLUGIN_DIR . '/' . basename( dirname
 define ('SEC_REWARD_NOTIFICATIONS_URL', plugins_url( '', __FILE__) );
 
 // Load after all other plugins since we need to be compatible with groupbuyingsite
-add_action( 'plugins_loaded', 'gb_reward_notifications_addon' );
-function gb_reward_notifications_addon() {
+add_action( 'plugins_loaded', 'sec_reward_notifications_addon' );
+function sec_reward_notifications_addon() {
 	if ( class_exists('Group_Buying_Controller') ) {
 		require_once 'classes/Reward_Notifications_Addon.php';
 		// Hook this plugin into the GBS add-ons controller
-		add_filter( 'gb_addons', array( 'Reward_Notifications_Addon', 'gb_addon' ), 10, 1 );	
+		add_filter( 'gb_addons', array( 'Reward_Notifications_Addon', 'sec_addon' ), 10, 1 );	
 	}
 	
 }
