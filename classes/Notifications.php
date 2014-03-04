@@ -104,11 +104,11 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	 * @return  
 	 */
 	public function maybe_send_notifications() {
+		// hold notifications
+		if ( apply_filters( 'sec_hold_reward_notification', '__return_false' ) )
+			return;
+
 		$current_month = date( self::$period_date_format, current_time('timestamp' ) );
-
-		// error_log( 'current_month notification: ' . print_r( $current_month, TRUE ) );
-
-		// error_log( 'last_email_sent notification: ' . print_r( self::$last_email_sent, TRUE ) );
 		if ( $current_month > self::$last_email_sent ) {
 			self::send_notifications();
 		}
@@ -158,7 +158,6 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 										);
 		
 		$users = get_users( $query_args );
-		// error_log( 'users notification: ' . print_r( $users, TRUE ) );
 
 		return $users;
 	}
@@ -180,9 +179,6 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 			'account_balance' => $balance,
 			'account_rewards' => $reward_points
 		);
-
-		// error_log( 'User getting notification: ' . print_r( $user_id, TRUE ) );
-
 		// If the account has rewards or an account balance
 		if ( $balance > 0 || $reward_points > 0 ) {
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE, $data, $recipient );
@@ -207,6 +203,4 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		self::$last_email_sent = date( self::$period_date_format, current_time('timestamp' ) );
 		update_option( self::EMAIL_SENT, self::$last_email_sent );
 	}
-
-
 }
