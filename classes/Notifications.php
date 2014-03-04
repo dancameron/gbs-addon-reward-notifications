@@ -7,18 +7,16 @@
  * @subpackage Base
  */
 class SEC_Reward_Notifications extends Group_Buying_Controller {
-	const USER_META_SENT = 'sec_last_time_sent_to_this_user';
-	const EMAIL_SENT = 'sec_last_time_rewards_notification_email_was_sent_v2';
-	const LAST_EMAIL_SENT_TO = 'sec_last_time_rewards_notification_email_was_sent_v2';
+	const USER_META_SENT = 'sec_last_time_sent_to_this_user_v2';
+	const EMAIL_SENT = 'sec_last_time_rewards_notification_email_was_sent_v1';
 	const NOTIFICATION_TYPE = 'reward_notifications';
 	const NOTIFICATION_TYPE_WO = 'reward_notifications_wo';
 	private static $last_email_sent = 0;
 	private static $last_email_sent_to = 0;
-	private static $period_date_format = 'ndH'; // Should be set to 'm' for a monthly send; 'ndHi' will send every minute; 'ndH' every hour
+	private static $period_date_format = 'm'; // Should be set to 'm' for a monthly send; 'ndHi' will send every minute; 'ndH' every hour
 	
 	public static function init() {
-		self::$last_email_sent = get_option( self::EMAIL_SENT, date( self::$period_date_format, current_time('timestamp' ) ) );
-		self::$last_email_sent_to = get_option( self::LAST_EMAIL_SENT_TO, 0 );
+		self::$last_email_sent = get_option( self::EMAIL_SENT, date( self::$period_date_format, current_time('timestamp' )-(2764800) ) );
 		// notification
 		add_filter( 'gb_notification_types', array( get_class(), 'register_notification_type' ), 10, 1 );
 		add_filter( 'gb_notification_shortcodes', array( get_class(), 'register_notification_shortcodes' ) );
@@ -107,6 +105,10 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	 */
 	public function maybe_send_notifications() {
 		$current_month = date( self::$period_date_format, current_time('timestamp' ) );
+
+		// error_log( 'current_month notification: ' . print_r( $current_month, TRUE ) );
+
+		// error_log( 'last_email_sent notification: ' . print_r( self::$last_email_sent, TRUE ) );
 		if ( $current_month > self::$last_email_sent ) {
 			self::send_notifications();
 		}
@@ -134,14 +136,16 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	public function find_users_to_get_notified( $first_timers = TRUE ) {
 		$users = array();
 		$query_args = array( 'fields' => array( 'ID', 'user_email' ), 'meta_query' => array() );
-		
+
+		$query_args['meta_query'] = array();
 		// First timers don't have a meta for the last time they've received 
 		// an update notification.
 		if ( $first_timers ) {
 			$query_args['meta_query']['relation'] = 'OR';
 			$query_args['meta_query'][] = array(
 											'key' => self::USER_META_SENT,
-											'compare' => 'NOT EXISTS'
+											'compare' => 'NOT EXISTS',
+     										'value' => '' // This is ignored, but is necessary...
 											);
 		}
 
@@ -152,8 +156,9 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 										'value' => $current_month,
 										'compare' => '<'
 										);
-
+		
 		$users = get_users( $query_args );
+		// error_log( 'users notification: ' . print_r( $users, TRUE ) );
 
 		return $users;
 	}
@@ -175,6 +180,9 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 			'account_balance' => $balance,
 			'account_rewards' => $reward_points
 		);
+
+		// error_log( 'User getting notification: ' . print_r( $user_id, TRUE ) );
+
 		// If the account has rewards or an account balance
 		if ( $balance > 0 || $reward_points > 0 ) {
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE, $data, $recipient );
