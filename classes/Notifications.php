@@ -105,6 +105,7 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	 */
 	public function maybe_send_notifications() {
 		// hold notifications
+		// add_filter( 'sec_hold_reward_notification', '__return_true' );
 		if ( apply_filters( 'sec_hold_reward_notification', '__return_false' ) )
 			return;
 
