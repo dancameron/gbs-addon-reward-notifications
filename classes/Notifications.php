@@ -7,8 +7,8 @@
  * @subpackage Base
  */
 class SEC_Reward_Notifications extends Group_Buying_Controller {
-	const USER_META_SENT = 'sec_last_time_sent_to_this_user_v2';
-	const EMAIL_SENT = 'sec_last_time_rewards_notification_email_was_sent_v1';
+	const USER_META_SENT = 'sec_last_time_sent_to_this_user_v3';
+	const EMAIL_SENT = 'sec_last_time_rewards_notification_email_was_sent_v3';
 	const NOTIFICATION_TYPE = 'reward_notifications';
 	const NOTIFICATION_TYPE_WO = 'reward_notifications_wo';
 	private static $last_email_sent = 0;
@@ -124,6 +124,8 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	public static function send_notifications( $periodic_send = TRUE ) {
 		$users = self::find_users_to_get_notified( $periodic_send );
 		foreach ( $users as $user ) {
+			// activate the notification if first time sending.
+			self::maybe_activate_notifications_for_account( $user );
 			self::send_notification( $user );
 		}
 		self::update_last_email_sent_time();
@@ -193,6 +195,34 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		update_usermeta( $user_id, self::USER_META_SENT, $current_month );
 
 		do_action( 'sec_rewards_notification_sent', $user );
+	}
+
+	/**
+	 * Check to see if notifications for the account have been sent, if not
+	 * there's a good chance that they might need these notifications activated.
+	 * Only activate/update if the user has subscription options already.
+	 * 
+	 * @param  int $user_id 
+	 * @return           
+	 */
+	public function maybe_activate_notifications_for_account( $user ) {
+		$user_id = $user->ID;
+		$last_received = get_user_meta( $user_id, self::USER_META_SENT, TRUE );
+		// Don't adjust unless this before the first send attempt.
+		if ( $last_received == '' ) {
+			$account_id = Group_Buying_Account::get_account_id_for_user( $user_id );
+			$notifications = get_post_meta( $account_id, '_'.Group_Buying_Notifications::NOTIFICATION_SUB_OPTION, TRUE );
+			// only deal with those accounts with some preferences already.
+			if ( is_array( $notifications ) ) {
+				$notifications[] = self::NOTIFICATION_TYPE;
+				$notifications[] = self::NOTIFICATION_TYPE_WO;
+				
+				// delete and then add
+				delete_post_meta( $account_id, '_'.Group_Buying_Notifications::NOTIFICATION_SUB_OPTION );
+				add_post_meta( $account_id, '_'.Group_Buying_Notifications::NOTIFICATION_SUB_OPTION, $notifications );
+			}
+		}
+		return;
 	}
 
 	/**

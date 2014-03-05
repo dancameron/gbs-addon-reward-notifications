@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SeC Addon - Reward Notifications
-Version: 1.1
+Version: 1.2
 Plugin URI: http://groupbuyingsite.com/marketplace
 Description: Periodic emails sent to accounts with or without rewards.
 Author: Sprout Venture
