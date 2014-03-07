@@ -109,8 +109,8 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		if ( apply_filters( 'sec_hold_reward_notification', FALSE ) )
 			return;
 
-		$current_month = date( self::$period_date_format, current_time('timestamp' ) );
-		if ( $current_month > self::$last_email_sent ) {
+		$date_sent = date( self::$period_date_format, current_time('timestamp' ) );
+		if ( $date_sent > self::$last_email_sent ) {
 			self::send_notifications();
 		}
 	}
@@ -153,15 +153,14 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		}
 
 		// Last sent before the current month. 
-		$current_month = date( self::$period_date_format, current_time('timestamp' ) );
+		$current_date = date( self::$period_date_format, current_time('timestamp' ) );
 		$query_args['meta_query'][] = array(
 										'key' => self::USER_META_SENT,
-										'value' => $current_month,
+										'value' => $current_date,
 										'compare' => '<'
 										);
 		
 		$users = get_users( $query_args );
-
 		return $users;
 	}
 
@@ -184,15 +183,19 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		);
 		// If the account has rewards or an account balance
 		if ( $balance > 0 || $reward_points > 0 ) {
+			error_log( 'reward notification sent: ' . print_r( $recipient, TRUE ) );
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE, $data, $recipient );
 		}
 		else {
+			error_log( 'reward notification (no rewards) sent: ' . print_r( $recipient, TRUE ) );
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE_WO, $data, $recipient );
 		}
 
 		// Flag that the user has received a notification
-		$current_month = date( self::$period_date_format, current_time('timestamp' ) );
-		update_usermeta( $user_id, self::USER_META_SENT, $current_month );
+		if ( !$date_sent ) {
+			$date_sent = date( self::$period_date_format, current_time('timestamp' ) );
+		}
+		update_usermeta( $user_id, self::USER_META_SENT, $date_sent );
 
 		do_action( 'sec_rewards_notification_sent', $user );
 	}
@@ -231,7 +234,7 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 	 * @return        
 	 */
 	public function update_last_email_sent_time() {
-		self::$last_email_sent = date( self::$period_date_format, current_time('timestamp' ) );
-		update_option( self::EMAIL_SENT, self::$last_email_sent );
+		$last_email_sent = date( self::$period_date_format, current_time('timestamp' ) );
+		update_option( self::EMAIL_SENT, $last_email_sent );
 	}
 }
