@@ -183,11 +183,11 @@ class SEC_Reward_Notifications extends Group_Buying_Controller {
 		);
 		// If the account has rewards or an account balance
 		if ( $balance > 0 || $reward_points > 0 ) {
-			error_log( 'reward notification sent: ' . print_r( $recipient, TRUE ) );
+			//error_log( 'reward notification sent: ' . print_r( $recipient, TRUE ) );
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE, $data, $recipient );
 		}
 		else {
-			error_log( 'reward notification (no rewards) sent: ' . print_r( $recipient, TRUE ) );
+			//error_log( 'reward notification (no rewards) sent: ' . print_r( $recipient, TRUE ) );
 			Group_Buying_Notifications::send_notification( self::NOTIFICATION_TYPE_WO, $data, $recipient );
 		}
 
